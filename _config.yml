@@ -1,0 +1,8 @@
+title: Your Site
+theme: minima
+
+exclude:
+  - node_modules
+  - backend
+  - client
+  - README.md
