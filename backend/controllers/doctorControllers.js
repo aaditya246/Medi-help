@@ -2,7 +2,10 @@ import doctorModel from "../models/doctorModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import appointmentModel from "../models/appointmentModel.js";
+<<<<<<< HEAD
 import { io } from '../server.js'
+=======
+>>>>>>> 8769766902ec2bd8a92f4490317a21a12fd03d41
 
 const changeAvailability = async (req, res) => {
   try {
@@ -80,10 +83,16 @@ const appointmentCancel = async (req, res) => {
       const appointmentData = await appointmentModel.findById(appointmentId)
       if (appointmentData && appointmentData.docId === docId) {
           await appointmentModel.findByIdAndUpdate(appointmentId, { cancelled: true })
+<<<<<<< HEAD
           await appointmentModel.findByIdAndUpdate(appointmentId, {cancelled: true,cancelledBy:  'doctor' })
           return res.json({ success: true, message: 'Appointment Cancelled' })
       }
       io.to(`user_${appointmentData.userId}`).emit("appointmentCancelled");
+=======
+          return res.json({ success: true, message: 'Appointment Cancelled' })
+      }
+
+>>>>>>> 8769766902ec2bd8a92f4490317a21a12fd03d41
       res.json({ success: false, message: 'Appointment Cancelled' })
 
   } catch (error) {
@@ -105,7 +114,11 @@ const appointmentComplete = async (req, res) => {
           await appointmentModel.findByIdAndUpdate(appointmentId, { isCompleted: true })
           return res.json({ success: true, message: 'Appointment Completed' })
       }
+<<<<<<< HEAD
       io.to(`user_${appointmentData.userId}`).emit("appointmentCancelled")
+=======
+
+>>>>>>> 8769766902ec2bd8a92f4490317a21a12fd03d41
       res.json({ success: false, message: 'Appointment Cancelled' })
 
   } catch (error) {

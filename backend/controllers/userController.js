@@ -6,7 +6,10 @@ import jwt from 'jsonwebtoken'
 import { v2 as cloudinary } from 'cloudinary'
 import doctorModel from '../models/doctorModel.js'
 import appointmentModel from '../models/appointmentModel.js'
+<<<<<<< HEAD
 import { io } from '../server.js'
+=======
+>>>>>>> 8769766902ec2bd8a92f4490317a21a12fd03d41
 import razorpay from 'razorpay'
 
 const registerUser = async (req, res) => {
@@ -61,6 +64,11 @@ const registerUser = async (req, res) => {
 
         console.log(error);
         res.json({ success: false, message: error.message })
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 8769766902ec2bd8a92f4490317a21a12fd03d41
     }
 
 }
@@ -93,6 +101,7 @@ const loginUser = async (req, res) => {
         else {
             res.json({ success: false, message: "Invalid credentials" })
         }
+<<<<<<< HEAD
     } catch (error) {
         console.log(error)
         res.json({ success: false, message: error.message })
@@ -102,6 +111,31 @@ const loginUser = async (req, res) => {
 }
 
 
+=======
+
+
+
+
+    } catch (error) {
+
+        console.log(error)
+        res.json({ success: false, message: error.message })
+
+
+
+    }
+
+
+
+
+
+
+
+}
+
+
+
+>>>>>>> 8769766902ec2bd8a92f4490317a21a12fd03d41
 //API to get user profile data
 
 const getProfile = async (req, res) => {
@@ -118,11 +152,19 @@ const getProfile = async (req, res) => {
 
     } catch (error) {
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 8769766902ec2bd8a92f4490317a21a12fd03d41
         console.log(error)
         res.json({ success: false, message: error.message })
 
     }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 8769766902ec2bd8a92f4490317a21a12fd03d41
 }
 
 //API to update user profile
@@ -131,16 +173,26 @@ const updateProfile = async (req, res) => {
     try {
 
         const { userId, name, phone, address, dob, gender } = req.body
+<<<<<<< HEAD
         const imageFile = req.file
+=======
+        const imageFile = req.imageFile
+>>>>>>> 8769766902ec2bd8a92f4490317a21a12fd03d41
 
         if (!name || !phone || !dob || !gender) {
             return res.json({ success: false, message: "Data Missing" })
 
         }
 
+<<<<<<< HEAD
         console.log("imageFile:", imageFile);
 
         await userModel.findByIdAndUpdate(userId, { name, phone, address: JSON.parse(address), dob, gender })
+=======
+
+
+        await userModel.findByIdAndUpdate(userId, { name, address: JSON.parse(address), dob, gender })
+>>>>>>> 8769766902ec2bd8a92f4490317a21a12fd03d41
 
         if (imageFile) {
 
@@ -149,7 +201,14 @@ const updateProfile = async (req, res) => {
             const imageUpload = await cloudinary.uploader.upload(imageFile.path, { resource_type: 'image' })
 
             const imageURL = imageUpload.secure_url
+<<<<<<< HEAD
             await userModel.findByIdAndUpdate(userId, { image: imageURL })
+=======
+
+            await userModel.findByIdAndUpdate(userId, { image: imageURL })
+
+
+>>>>>>> 8769766902ec2bd8a92f4490317a21a12fd03d41
         }
 
         res.json({ success: true, message: "Profile Updated" })
@@ -229,8 +288,11 @@ const bookAppointment = async (req, res) => {
 
         await newAppointment.save()
 
+<<<<<<< HEAD
         io.to(`doctor_${docId}`).emit("appointmentBooked");
 
+=======
+>>>>>>> 8769766902ec2bd8a92f4490317a21a12fd03d41
 
         await doctorModel.findByIdAndUpdate(docId, { slots_booked })
 
@@ -277,9 +339,12 @@ const cancelAppointment = async (req, res) => {
         }
 
         await appointmentModel.findByIdAndUpdate(appointmentId, { cancelled: true })
+<<<<<<< HEAD
         await appointmentModel.findByIdAndUpdate(appointmentId, {cancelled: true,cancelledBy: 'user' })
         
 
+=======
+>>>>>>> 8769766902ec2bd8a92f4490317a21a12fd03d41
 
         //releasing doctor slot
         const { docId, slotDate, slotTime } = appointmentData
@@ -291,8 +356,11 @@ const cancelAppointment = async (req, res) => {
         slots_booked[slotDate] = slots_booked[slotDate].filter(e => e !== slotTime)
 
         await doctorModel.findByIdAndUpdate(docId, { slots_booked })
+<<<<<<< HEAD
         io.to(`doctor_${docId}`).emit("appointmentCancelled");
 
+=======
+>>>>>>> 8769766902ec2bd8a92f4490317a21a12fd03d41
 
         res.json({ success: true, message: 'Appointment Cancelled' })
 

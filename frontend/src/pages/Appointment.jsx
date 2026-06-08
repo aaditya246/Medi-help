@@ -217,7 +217,11 @@ import { toast } from 'react-toastify'
 const Appointment = () => {
 
     const { docId } = useParams()
+<<<<<<< HEAD
     const { doctors, currencySymbol, backendUrl, token, getDoctorsData } = useContext(AppContext)
+=======
+    const { doctors, currencySymbol, backendUrl, token, getDoctosData } = useContext(AppContext)
+>>>>>>> 8769766902ec2bd8a92f4490317a21a12fd03d41
     const daysOfWeek = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 
     const [docInfo, setDocInfo] = useState(false)
@@ -313,7 +317,11 @@ const Appointment = () => {
             const { data } = await axios.post(backendUrl + '/api/user/book-appointment', { docId, slotDate, slotTime }, { headers: { token } })
             if (data.success) {
                 toast.success(data.message)
+<<<<<<< HEAD
                getDoctorsData()
+=======
+                getDoctosData()
+>>>>>>> 8769766902ec2bd8a92f4490317a21a12fd03d41
                 navigate('/my-appointments')
             } else {
                 toast.error(data.message)

@@ -28,6 +28,7 @@ app.use('/api/user',userRouter)
 app.get('/',(req,res)=>{
     res.send("API WORKING fine")
 })
+<<<<<<< HEAD
 import { createServer } from "http";
 import { Server } from "socket.io";
 
@@ -54,6 +55,13 @@ io.on("connection", (socket) => {
 server.listen(port, () => {
   console.log("Server Started", port);
 });
+=======
+
+app.listen(port,()=>{
+    console.log("server started",port)
+})
+
+>>>>>>> 8769766902ec2bd8a92f4490317a21a12fd03d41
 
 
 

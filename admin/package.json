@@ -14,8 +14,12 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.1.5",
+<<<<<<< HEAD
     "react-toastify": "^11.0.3",
     "socket.io-client": "^4.8.3"
+=======
+    "react-toastify": "^11.0.3"
+>>>>>>> 8769766902ec2bd8a92f4490317a21a12fd03d41
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

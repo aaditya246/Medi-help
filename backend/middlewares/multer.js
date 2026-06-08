@@ -20,6 +20,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage })
 
+<<<<<<< HEAD
 export default upload
 
 
@@ -30,3 +31,6 @@ export default upload
 // const upload = multer({ storage });
 
 // export default upload;
+=======
+export default upload
+>>>>>>> 8769766902ec2bd8a92f4490317a21a12fd03d41

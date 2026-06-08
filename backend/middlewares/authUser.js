@@ -2,8 +2,7 @@ import jwt from 'jsonwebtoken'
 
 // user authentication middleware
 const authUser = async (req, res, next) => {
-    console.log("AUTH req.file =", req.file)
-    console.log("AUTH req.body =", req.body)
+
     const { token } = req.headers
     if (!token) {
         return res.json({ success: false, message: 'Not Authorized Login Again' })

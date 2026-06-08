@@ -8,6 +8,10 @@ export default defineConfig({
     
     tailwindcss()
   ],
+<<<<<<< HEAD
   base: "/",
+=======
+  base: "/Doctor-Appointment-Booking/",
+>>>>>>> 8769766902ec2bd8a92f4490317a21a12fd03d41
   server:{port:5173}
 })
