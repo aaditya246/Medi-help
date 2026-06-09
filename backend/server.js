@@ -21,8 +21,8 @@ app.use(cors({
     origin: [
             'http://localhost:5173',
             'http://localhost:5174',
-            'https://medi-help-mu.vercel.app/',
-            'https://medi-helpadmin.vercel.app/',
+            'https://medi-help-mu.vercel.app',
+            'https://medi-helpadmin.vercel.app',
     ],
     credentials: true,
 }))
@@ -44,8 +44,8 @@ export const io = new Server(server, {
         origin: [
             'http://localhost:5173',
             'http://localhost:5174',
-            'https://medi-help-mu.vercel.app/',
-            'https://medi-helpadmin.vercel.app/',
+            'https://medi-help-mu.vercel.app',
+            'https://medi-helpadmin.vercel.app',
         ],
         credentials: true,
     },
