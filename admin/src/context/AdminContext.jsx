@@ -1,6 +1,7 @@
-import { createContext, useState } from "react";
 import axios from 'axios'
 import {toast} from 'react-toastify'
+import { createContext, useState, useEffect } from "react";
+import socket from "../socket";
 
 export const AdminContext = createContext();
 
@@ -98,6 +99,56 @@ const AdminContextProvider = (props) => {
       toast.error(error.message)
     }
   }
+          useEffect(() => {
+  
+          if (!aToken) return
+  
+          socket.on("adminAppointmentUpdated", () => {
+  
+          console.log("Admin appointments updated")
+  
+          getAllAppointments()
+          getDashData()
+  
+          })
+  
+          socket.on("appointmentBooked", () => {
+  
+          console.log("New appointment booked")
+  
+          getAllAppointments()
+          getDashData()
+  
+          })
+  
+           socket.on("appointmentCancelled", () => {
+  
+          console.log("Appointment cancelled")
+  
+          getAllAppointments()
+          getDashData()
+  
+          })
+  
+          socket.on("appointmentCompleted", () => {
+  
+          console.log("Appointment completed")
+  
+          getAllAppointments()
+          getDashData()
+  
+          })
+  
+          return () => {
+  
+          socket.off("adminAppointmentUpdated")
+          socket.off("appointmentBooked")
+          socket.off("appointmentCancelled")
+          socket.off("appointmentCompleted")
+  
+          }
+  
+      }, [aToken])
 
   const value = {
     aToken,

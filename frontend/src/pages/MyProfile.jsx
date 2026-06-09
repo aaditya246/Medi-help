@@ -47,13 +47,6 @@ toast.error(error.message)
 }
 
   }
-<<<<<<< HEAD
-  console.log("User Data:", userData);
-  console.log("Image URL:", userData?.image);
-=======
-  
->>>>>>> 8769766902ec2bd8a92f4490317a21a12fd03d41
-
   return userData && (
     <div className='max-w-lg flex flex-col gap-2 text-sm'>
 
@@ -75,15 +68,6 @@ toast.error(error.message)
            :<img className='w-36 rounded' src={userData.image} alt="" />
 
       }
-
-
-
-
-
-
-
-
-      
 
       {
         isEdit

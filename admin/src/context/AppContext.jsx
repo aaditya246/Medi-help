@@ -1,36 +1,58 @@
-import { createContext } from "react";
+import { createContext, useState, useEffect } from "react";
+import socket from "../socket";
 
-export const AppContext=createContext()
 
-const AppContextProvider=(props)=>{
+export const AppContext = createContext();
 
-    const currency = '$'
+const AppContextProvider = (props) => {
+
+    const currency = '$';
 
     const calculateAge = (dob) => {
-        const today = new Date()
-        const birthDate = new Date(dob)
 
-        let age=today.getFullYear() - birthDate.getFullYear()
-        return age
-    }
+        if (!dob) return '-';
 
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" ]
-    const slotDateFormat = (slotDate) =>{
-        const dateArray = slotDate.split('_')
-        return dateArray[0]+" "+ months[Number(dateArray[1])] + " " + dateArray[2]
-      }
-    
-    const value={
-        calculateAge,
-        slotDateFormat,
-        currency
+        const birthDate = new Date(dob);
 
-    }
-    return (
-        <AppContext.Provider value={value}>
-            {props.children}
-        </AppContext.Provider>
-    )
-}
+        if (isNaN(birthDate.getTime())) return '-';
 
-export default AppContextProvider
+        const today = new Date();
+
+        return today.getFullYear() - birthDate.getFullYear();
+    };
+
+    const months = [
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ];
+
+    const slotDateFormat = (slotDate) => {
+
+        if (!slotDate) return '-';
+
+        const dateArray = slotDate.split('_');
+
+        return (
+            dateArray[0] +
+            " " +
+            months[Number(dateArray[1]) - 1] +
+            " " +
+            dateArray[2]
+        );
+    };
+
+
+    const value = {
+    calculateAge,
+    slotDateFormat,
+    currency
+};
+
+return (
+    <AppContext.Provider value={value}>
+        {props.children}
+    </AppContext.Provider>
+);
+};
+
+export default AppContextProvider;

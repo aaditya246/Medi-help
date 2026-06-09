@@ -1,214 +1,230 @@
-import doctorModel from "../models/doctorModel.js";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import appointmentModel from "../models/appointmentModel.js";
-<<<<<<< HEAD
+import doctorModel from '../models/doctorModel.js'
+import bcrypt from 'bcrypt'
+import jwt from 'jsonwebtoken'
+import appointmentModel from '../models/appointmentModel.js'
 import { io } from '../server.js'
-=======
->>>>>>> 8769766902ec2bd8a92f4490317a21a12fd03d41
 
-const changeAvailability = async (req, res) => {
-  try {
-    const { docId } = req.body;
+const  changeAvailability = async (req,res) => {
 
-    const docData = await doctorModel.findById(docId);
-    await doctorModel.findByIdAndUpdate(docId, {
-      available: !docData.available,
-    });
-    res.json({ success: true, message: "Availability Changed" });
-  } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: error.message });
-  }
-};
+    try {
+
+        const { docId } = req.body
+
+        const doctorData = await doctorModel.findById(docId)
+
+        await doctorModel.findByIdAndUpdate(
+            docId,
+            { available: !doctorData.available }
+        )
+
+        io.emit("doctorAvailabilityChanged")
+        io.emit("admindoctorAvailabilityChanged")
+        
+
+        res.json({
+            success:true,
+            message:"Availability Changed"
+        })
+
+    } catch(error){
+        console.log(error)
+        res.json({
+            success:false,
+            message:error.message
+        })
+    }
+}
 
 const doctorList = async (req, res) => {
-  try {
-    const doctors = await doctorModel.find({}).select(["-password", "-email"]);
-
-    res.json({ success: true, doctors });
-  } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: error.message });
-  }
-};
-
-// API for doctor login
+    try {
+        const doctors = await doctorModel.find({}).select(['-password', '-email'])
+        res.json({ success: true, doctors })
+    } catch (error) {
+        console.log(error)
+        res.json({ success: false, message: error.message })
+    }
+}
 
 const loginDoctor = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const doctor = await doctorModel.findOne({ email });
+    try {
+        const { email, password } = req.body
+        const doctor = await doctorModel.findOne({ email })
 
-    if (!doctor) {
-      return res.json({ success: false, message: "Invalid credentials" });
+        if (!doctor) {
+            return res.json({ success: false, message: 'Invalid credentials' })
+        }
+
+        const isMatch = await bcrypt.compare(password, doctor.password)
+
+        if (isMatch) {
+            const token = jwt.sign({ id: doctor._id }, process.env.JWT_SECRET)
+            res.json({ success: true, token })
+        } else {
+            res.json({ success: false, message: 'Invalid credentials' })
+        }
+    } catch (error) {
+        console.log(error)
+        res.json({ success: false, message: error.message })
     }
-
-    const isMatch = await bcrypt.compare(password, doctor.password);
-
-    if (isMatch) {
-      const token = jwt.sign({ id: doctor._id }, process.env.JWT_SECRET);
-
-      res.json({ success: true, token });
-    } else {
-      res.json({ success: false, message: "Invalid credentials" });
-    }
-  } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: error.message });
-  }
-};
-
-//API to get doctor appointment for doctor panel
+}
 
 const appointmentsDoctor = async (req, res) => {
-  try {
-    const { docId } = req.body;
-    const appointments = await appointmentModel.find({ docId });
+    try {
+        const { docId } = req.body
+        const appointments = await appointmentModel.find({ docId })
+        res.json({ success: true, appointments })
+    } catch (error) {
+        console.log(error)
+        res.json({ success: false, message: error.message })
+    }
+}
 
-    res.json({ success: true, appointments });
-  } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: error.message });
-  }
-};
-
-
-// API to cancel appointment for doctor panel
+// API to cancel appointment (by doctor)
 const appointmentCancel = async (req, res) => {
-  try {
+    try {
+        const { docId, appointmentId } = req.body
+        const appointmentData = await appointmentModel.findById(appointmentId)
 
-      const { docId, appointmentId } = req.body
+        if (!appointmentData || appointmentData.docId !== docId) {
+            return res.json({ success: false, message: 'Unauthorized action' })
+        }
 
-      const appointmentData = await appointmentModel.findById(appointmentId)
-      if (appointmentData && appointmentData.docId === docId) {
-          await appointmentModel.findByIdAndUpdate(appointmentId, { cancelled: true })
-<<<<<<< HEAD
-          await appointmentModel.findByIdAndUpdate(appointmentId, {cancelled: true,cancelledBy:  'doctor' })
-          return res.json({ success: true, message: 'Appointment Cancelled' })
-      }
-      io.to(`user_${appointmentData.userId}`).emit("appointmentCancelled");
-=======
-          return res.json({ success: true, message: 'Appointment Cancelled' })
-      }
+        await appointmentModel.findByIdAndUpdate(appointmentId, {
+            cancelled: true,
+            cancelledBy: 'doctor',
+        })
 
->>>>>>> 8769766902ec2bd8a92f4490317a21a12fd03d41
-      res.json({ success: false, message: 'Appointment Cancelled' })
+        // Release doctor slot
+        const { slotDate, slotTime } = appointmentData
+        const doctorData = await doctorModel.findById(docId)
+        let slots_booked = doctorData.slots_booked
+        slots_booked[slotDate] = slots_booked[slotDate].filter(e => e !== slotTime)
+        await doctorModel.findByIdAndUpdate(docId, { slots_booked })
 
-  } catch (error) {
-      console.log(error)
-      res.json({ success: false, message: error.message })
-  }
+        // Notify the user's room that appointment was cancelled by doctor
+        io.to(`user_${appointmentData.userId}`).emit('appointmentCancelled')
+        io.emit("adminAppointmentUpdated")
+        console.log(`Emitted appointmentCancelled to room: user_${appointmentData.userId}`)
 
+        res.json({ success: true, message: 'Appointment Cancelled' })
+
+    } catch (error) {
+        console.log(error)
+        res.json({ success: false, message: error.message })
+    }
 }
 
-
-// API to mark appointment completed for doctor panel
+// API to mark appointment completed (by doctor)
 const appointmentComplete = async (req, res) => {
-  try {
+    try {
+        const { docId, appointmentId } = req.body
+        const appointmentData = await appointmentModel.findById(appointmentId)
 
-      const { docId, appointmentId } = req.body
+        if (!appointmentData || appointmentData.docId !== docId) {
+            return res.json({ success: false, message: 'Unauthorized action' })
+        }
 
-      const appointmentData = await appointmentModel.findById(appointmentId)
-      if (appointmentData && appointmentData.docId === docId) {
-          await appointmentModel.findByIdAndUpdate(appointmentId, { isCompleted: true })
-          return res.json({ success: true, message: 'Appointment Completed' })
-      }
-<<<<<<< HEAD
-      io.to(`user_${appointmentData.userId}`).emit("appointmentCancelled")
-=======
+        await appointmentModel.findByIdAndUpdate(appointmentId, { isCompleted: true })
 
->>>>>>> 8769766902ec2bd8a92f4490317a21a12fd03d41
-      res.json({ success: false, message: 'Appointment Cancelled' })
+        // Notify the user's room that appointment was completed
+        io.to(`user_${appointmentData.userId}`).emit('appointmentCompleted')
+        io.emit("adminAppointmentUpdated")
+        console.log(`Emitted appointmentCompleted to room: user_${appointmentData.userId}`)
 
-  } catch (error) {
-      console.log(error)
-      res.json({ success: false, message: error.message })
-  }
+        res.json({ success: true, message: 'Appointment Completed' })
 
+    } catch (error) {
+        console.log(error)
+        res.json({ success: false, message: error.message })
+    }
 }
 
-
-// API to get dashboard data for doctor panel
 const doctorDashboard = async (req, res) => {
-  try {
+    try {
+        const { docId } = req.body
+        const appointments = await appointmentModel.find({ docId })
 
-      const { docId } = req.body
+        let earnings = 0
+        appointments.forEach(item => {
+            if (item.isCompleted || item.payment) {
+                earnings += item.amount
+            }
+        })
 
-      const appointments = await appointmentModel.find({ docId })
+        let patients = []
+        appointments.forEach(item => {
+            if (!patients.includes(item.userId)) {
+                patients.push(item.userId)
+            }
+        })
 
-      let earnings = 0
+        const dashData = {
+            earnings,
+            appointments: appointments.length,
+            patients: patients.length,
+            latestAppointments: appointments.reverse().slice(0, 5),
+        }
 
-      appointments.map((item) => {
-          if (item.isCompleted || item.payment) {
-              earnings += item.amount
-          }
-      })
+        res.json({ success: true, dashData })
 
-      let patients = []
-
-      appointments.map((item) => {
-          if (!patients.includes(item.userId)) {
-              patients.push(item.userId)
-          }
-      })
-
-
-
-      const dashData = {
-          earnings,
-          appointments: appointments.length,
-          patients: patients.length,
-          latestAppointments: appointments.reverse().slice(0,5)
-      }
-
-      res.json({ success: true, dashData })
-
-  } catch (error) {
-      console.log(error)
-      res.json({ success: false, message: error.message })
-  }
+    } catch (error) {
+        console.log(error)
+        res.json({ success: false, message: error.message })
+    }
 }
 
-
-// API to get doctor profile for  Doctor Panel
 const doctorProfile = async (req, res) => {
-  try {
-
-      const { docId } = req.body
-      const profileData = await doctorModel.findById(docId).select('-password')
-
-      res.json({ success: true, profileData })
-
-  } catch (error) {
-      console.log(error)
-      res.json({ success: false, message: error.message })
-  }
+    try {
+        const { docId } = req.body
+        const profileData = await doctorModel.findById(docId).select('-password')
+        res.json({ success: true, profileData })
+    } catch (error) {
+        console.log(error)
+        res.json({ success: false, message: error.message })
+    }
 }
 
-
-// API to update doctor profile data from  Doctor Panel
 const updateDoctorProfile = async (req, res) => {
-  try {
+    try {
 
-      const { docId, fees, address, available } = req.body
+        const { docId, fees, address, available } = req.body
 
-      await doctorModel.findByIdAndUpdate(docId, { fees, address, available })
+        await doctorModel.findByIdAndUpdate(
+            docId,
+            { fees, address, available }
+        )
 
-      res.json({ success: true, message: 'Profile Updated' })
+        // Notify all connected clients
+        io.emit("doctorAvailabilityChanged")
+        io.emit("admindoctorAvailabilityChanged")
 
-  } catch (error) {
-      console.log(error)
-      res.json({ success: false, message: error.message })
-  }
+        console.log("Doctor availability changed")
+
+        res.json({
+            success: true,
+            message: 'Profile Updated'
+        })
+
+    } catch (error) {
+
+        console.log(error)
+
+        res.json({
+            success: false,
+            message: error.message
+        })
+
+    }
 }
 
-
-export { changeAvailability,
-   doctorList, 
-   loginDoctor, 
-   appointmentsDoctor,
-  appointmentComplete,
-appointmentCancel,doctorDashboard,
-doctorProfile,
-updateDoctorProfile };
+export {
+    changeAvailability,
+    doctorList,
+    loginDoctor,
+    appointmentsDoctor,
+    appointmentComplete,
+    appointmentCancel,
+    doctorDashboard,
+    doctorProfile,
+    updateDoctorProfile,
+}
