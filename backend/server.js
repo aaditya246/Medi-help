@@ -17,7 +17,15 @@ connectCloudinary()
 
 // Middlewares
 app.use(express.json())
-app.use(cors())
+app.use(cors({
+    origin: [
+        'http://localhost:5173',
+        'http://localhost:5174',
+        process.env.FRONTEND_URL,
+        process.env.ADMIN_URL,
+    ],
+    credentials: true,
+}))
 
 // API endpoints
 app.use('/api/admin', adminRouter)
@@ -33,7 +41,13 @@ const server = createServer(app)
 
 export const io = new Server(server, {
     cors: {
-        origin: '*',
+        origin: [
+            'http://localhost:5173',
+            'http://localhost:5174',
+            process.env.FRONTEND_URL,
+            process.env.ADMIN_URL,
+        ],
+        credentials: true,
     },
 })
 
