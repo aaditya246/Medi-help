@@ -60,6 +60,35 @@ const DoctorContextProvider = (props) => {
             console.log(error)
         }
     }
+    const confirmAppointment = async (appointmentId) => {
+        try {
+
+            const { data } = await axios.post(
+                backendUrl + '/api/doctor/confirm-appointment',
+                { appointmentId },
+                { headers: { dToken } }
+            )
+
+            if (data.success) {
+
+                toast.success(data.message)
+
+                getAppointments()
+                getDashData()
+
+            } else {
+
+                toast.error(data.message)
+
+            }
+
+        } catch (error) {
+
+            console.log(error)
+            toast.error(error.message)
+
+        }
+    }
 
     const cancelAppointment = async (appointmentId) => {
         try {
@@ -168,58 +197,63 @@ const DoctorContextProvider = (props) => {
     // Using refs means the callbacks always call the latest getAppointments/
     // getDashData even though the useEffect only runs once.
     useEffect(() => {
-        const handleBooked = () => {
-            console.log('Socket: appointmentBooked received')
+        const refreshData = () => {
             getAppointmentsRef.current?.()
             getDashDataRef.current?.()
         }
-        const handleCancelled = () => {
-            console.log('Socket: appointmentCancelled received')
-            getAppointmentsRef.current?.()
-            getDashDataRef.current?.()
-        }
-        socket.on('appointmentBooked', handleBooked)
-        socket.on('appointmentCancelled', handleCancelled)
+
+        socket.on('appointmentBooked', refreshData)
+        socket.on('appointmentCancelled', refreshData)
+        socket.on('appointmentConfirmed', refreshData)
+        socket.on('appointmentCompleted', refreshData)
+
         return () => {
-            socket.off('appointmentBooked', handleBooked)
-            socket.off('appointmentCancelled', handleCancelled)
+            socket.off('appointmentBooked', refreshData)
+            socket.off('appointmentCancelled', refreshData)
+            socket.off('appointmentConfirmed', refreshData)
+            socket.off('appointmentCompleted', refreshData)
         }
     }, [])
 
     useEffect(() => {
 
-    socket.on("doctorAvailabilityChanged", () => {
+        socket.on("doctorAvailabilityChanged", () => {
 
-        getProfileData()
+            getProfileData()
 
-        console.log("Doctor availability refreshed")
+            console.log("Doctor availability refreshed")
 
-    })
+        })
 
-    return () => {
+        return () => {
 
-        socket.off("doctorAvailabilityChanged")
+            socket.off("doctorAvailabilityChanged")
 
-    }
+        }
 
-}, [])
+    }, [])
 
     const value = {
-        dToken,
-        setDToken,
-        backendUrl,
-        getAppointments,
-        appointments,
-        setAppointments,
-        completeAppointment,
-        cancelAppointment,
-        dashData,
-        setDashData,
-        getDashData,
-        getProfileData,
-        profileData,
-        setProfileData,
-    }
+    dToken,
+    setDToken,
+    backendUrl,
+
+    getAppointments,
+    appointments,
+    setAppointments,
+
+    confirmAppointment,
+    completeAppointment,
+    cancelAppointment,
+
+    dashData,
+    setDashData,
+    getDashData,
+
+    getProfileData,
+    profileData,
+    setProfileData,
+}
 
     return (
         <DoctorContext.Provider value={value}>

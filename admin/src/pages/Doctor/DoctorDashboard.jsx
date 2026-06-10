@@ -7,8 +7,8 @@ import { AppContext } from '../../context/AppContext'
 
 const DoctorDashboard = () => {
 
-  const { dToken, dashData, getDashData,completeAppointment,cancelAppointment } = useContext(DoctorContext)
-  const { currency  , slotDateFormat} = useContext(AppContext)
+  const { dToken, dashData, getDashData, completeAppointment, cancelAppointment, confirmAppointment } = useContext(DoctorContext)
+  const { currency, slotDateFormat } = useContext(AppContext)
 
 
   useEffect(() => {
@@ -24,8 +24,8 @@ const DoctorDashboard = () => {
 
 
   return dashData && (
-    
-  
+
+
     <div className='m-5'>
 
       <div className='flex flex-wrap gap-3'>
@@ -51,13 +51,13 @@ const DoctorDashboard = () => {
         </div>
       </div>
 
-       <div className='bg-white'>
+      <div className='bg-white'>
         <div className='flex items-center gap-2.5 px-4 py-4 mt-10 rounded-t border'>
           <img src={assets.list_icon} alt="" />
           <p className='font-semibold'>Latest Bookings</p>
-        </div> 
+        </div>
 
-         <div className='pt-4 border border-t-0'>
+        <div className='pt-4 border border-t-0'>
           {dashData.latestAppointments.slice(0, 5).map((item, index) => (
             <div className='flex items-center px-6 py-3 gap-3 hover:bg-gray-100' key={index}>
               <img className='rounded-full w-10' src={item.userData.image} alt="" />
@@ -65,22 +65,62 @@ const DoctorDashboard = () => {
                 <p className='text-gray-800 font-medium'>{item.userData.name}</p>
                 <p className='text-gray-600 '>Booking on {slotDateFormat(item.slotDate)}</p>
               </div>
-              {item.cancelled
-                ? <p className='text-red-400 text-xs font-medium'>Cancelled</p>
-                : item.isCompleted
-                  ? <p className='text-green-500 text-xs font-medium'>Completed</p>
-                  : <div className='flex'>
-                    <img onClick={() => cancelAppointment(item._id)} className='w-10 cursor-pointer' src={assets.cancel_icon} alt="" />
-                    <img onClick={() => completeAppointment(item._id)} className='w-10 cursor-pointer' src={assets.tick_icon} alt="" />
+              {
+                item.status === "Cancelled" ? (
+                  <div className="flex flex-col items-end">
+                    <p className="text-red-500 text-xs font-medium">
+                      Cancelled
+                    </p>
+
+                    <p className="text-[10px] text-gray-500">
+                      By {item.cancelledBy}
+                    </p>
                   </div>
+                ) : item.status === "Completed" ? (
+                  <p className="text-green-500 text-xs font-medium">
+                    Completed
+                  </p>
+                ) : item.status === "Confirmed" ? (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => completeAppointment(item._id)}
+                      className="px-2 py-1 bg-green-500 text-white rounded text-xs"
+                    >
+                      Complete
+                    </button>
+
+                    <button
+                      onClick={() => cancelAppointment(item._id)}
+                      className="px-2 py-1 bg-red-500 text-white rounded text-xs"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => confirmAppointment(item._id)}
+                      className="px-2 py-1 bg-blue-500 text-white rounded text-xs"
+                    >
+                      Confirm
+                    </button>
+
+                    <button
+                      onClick={() => cancelAppointment(item._id)}
+                      className="px-2 py-1 bg-red-500 text-white rounded text-xs"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )
               }
-            </div> 
+            </div>
           ))}
-         </div> 
-      </div> 
+        </div>
+      </div>
 
     </div>
-  
+
   )
 }
 

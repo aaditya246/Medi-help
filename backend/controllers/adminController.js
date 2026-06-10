@@ -6,6 +6,9 @@ import jwt from 'jsonwebtoken'
 import appointmentModel from '../models/appointmentModel.js'
 import userModel from '../models/userModel.js'
 import { io } from '../server.js'
+
+
+
 // API for adding doctor
 
 const addDoctor = async (req, res) => {
@@ -13,8 +16,6 @@ const addDoctor = async (req, res) => {
 
         const { name, email, password, speciality, degree, experience, about, fees, address } = req.body
         const imageFile = req.file
-
-        console.log({ name, email, password, speciality, degree, experience, about, fees, address }, imageFile)
 
         if (!name || !email || !password || !speciality || !degree || !experience || !about || !fees || !address) {
             return res.json({ success: false, message: "Missing details" })
@@ -74,6 +75,23 @@ const addDoctor = async (req, res) => {
 
 
 
+// API for admin Login
+const loginAdmin = async (req, res) => {
+    try {
+        const { email, password } = req.body
+        if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
+            const token = jwt.sign(email + password, process.env.JWT_SECRET)
+            res.json({ success: true, token })
+        } else {
+            res.json({ success: false, message: "Invalid credentials" })
+        }
+    } catch (error) {
+        console.log(error);
+        res.json({ success: false, message: error.message })
+
+    }
+}
+
 //API to get all doctors list for admin panel
 
 const allDoctors = async (req, res) => {
@@ -92,7 +110,6 @@ const appointmentsAdmin = async (req, res) => {
 
     try {
         const appointments = await appointmentModel.find({})
-        console.log(appointments);
         res.json({ success: true, appointments })
 
     } catch (error) {
@@ -108,20 +125,43 @@ const appointmentCancel = async (req, res) => {
 
         const { appointmentId } = req.body
 
-        const appointmentData = await appointmentModel.findById(appointmentId)
+        const appointmentData =
+            await appointmentModel.findById(appointmentId)
+
+        if (!appointmentData) {
+            return res.json({
+                success: false,
+                message: "Appointment not found"
+            })
+        }
+
+        if (appointmentData.status === "Completed") {
+            return res.json({
+                success: false,
+                message: "Completed appointments cannot be cancelled"
+            })
+        }
+
+        if (appointmentData.status === "Cancelled") {
+            return res.json({
+                success: false,
+                message: "Appointment already cancelled"
+            })
+        }
 
         await appointmentModel.findByIdAndUpdate(
             appointmentId,
             {
-                cancelled: true,
-                cancelledBy: 'admin'
+                status: "Cancelled",
+                cancelledBy: "admin"
             }
         )
 
-        // releasing doctor slot
+        // release doctor slot
         const { docId, slotDate, slotTime } = appointmentData
 
-        const doctorData = await doctorModel.findById(docId)
+        const doctorData =
+            await doctorModel.findById(docId)
 
         let slots_booked = doctorData.slots_booked
 
@@ -143,16 +183,11 @@ const appointmentCancel = async (req, res) => {
         io.to(`doctor_${docId}`)
             .emit("appointmentCancelled")
 
-        // refresh admin dashboard and appointments page
         io.emit("adminAppointmentUpdated")
-
-        console.log(
-            "Admin cancelled appointment"
-        )
 
         res.json({
             success: true,
-            message: 'Appointment Cancelled'
+            message: "Appointment Cancelled"
         })
 
     } catch (error) {
@@ -166,6 +201,7 @@ const appointmentCancel = async (req, res) => {
 
     }
 }
+
 
 //API to get dashboard data for admin panel
 const adminDashboard = async (req, res) => {

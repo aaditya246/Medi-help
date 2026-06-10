@@ -6,7 +6,7 @@ import { assets } from '../../assets/assets'
 
 const DoctorAppointments = () => {
 
-  const { dToken, appointments, getAppointments, completeAppointment, cancelAppointment } = useContext(DoctorContext)
+  const { dToken, appointments, getAppointments, completeAppointment,confirmAppointment } = useContext(DoctorContext)
   const { slotDateFormat, calculateAge, currency } = useContext(AppContext)
 
   useEffect(() => {
@@ -47,39 +47,53 @@ const DoctorAppointments = () => {
               <p>{slotDateFormat(item.slotDate)}, {item.slotTime}</p>
               <p>{currency}{item.amount}</p>
               {
-                item.cancelled ? (
-                  <div className='flex flex-col'>
-                    <p className='text-red-500 text-xs font-medium'>
-                      Cancelled
+                  item.status === "Cancelled" ? (
+                    <div>
+                      <p className="text-red-500 text-xs font-medium">
+                        Cancelled
+                      </p>
+                      <p className="text-[10px] text-gray-500">
+                        By {item.cancelledBy}
+                      </p>
+                    </div>
+                  ) : item.status === "Completed" ? (
+                    <p className="text-green-500 text-xs font-medium">
+                      Completed
                     </p>
+                  ) : item.status === "Confirmed" ? (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => completeAppointment(item._id)}
+                        className="px-2 py-1 text-xs bg-green-500 text-white rounded"
+                      >
+                        Complete
+                      </button>
 
-                    <p className='text-[10px] text-gray-500'>
-                      By {item.cancelledBy}
-                    </p>
-                  </div>
-                ) : item.isCompleted ? (
-                  <p className='text-green-500 text-xs font-medium'>
-                    Completed
-                  </p>
-                ) : (
-                  <div className='flex'>
-                    <img
-                      onClick={() => cancelAppointment(item._id)}
-                      className='w-10 cursor-pointer'
-                      src={assets.cancel_icon}
-                      alt=""
-                    />
+                      <button
+                        onClick={() => cancelAppointment(item._id)}
+                        className="px-2 py-1 text-xs bg-red-500 text-white rounded"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => confirmAppointment(item._id)}
+                        className="px-2 py-1 text-xs bg-blue-500 text-white rounded"
+                      >
+                        Confirm
+                      </button>
 
-                    <img
-                      onClick={() => completeAppointment(item._id)}
-                      className='w-10 cursor-pointer'
-                      src={assets.tick_icon}
-                      alt=""
-                    />
-                  </div>
-                )
+                      <button
+                        onClick={() => cancelAppointment(item._id)}
+                        className="px-2 py-1 text-xs bg-red-500 text-white rounded"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  )
               }
-
             </div>
           ))}
       </div>

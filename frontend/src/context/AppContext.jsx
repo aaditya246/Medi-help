@@ -12,88 +12,161 @@ const AppContextProvider = (props) => {
 
     const [doctors, setDoctors] = useState([])
     const [token, setToken] = useState(
-        localStorage.getItem('token') ? localStorage.getItem('token') : false
+        localStorage.getItem('token')
+            ? localStorage.getItem('token')
+            : false
     )
+
     const [userData, setUserData] = useState(false)
 
+    // Get all doctors
     const getDoctorsData = async () => {
+
         try {
-            const { data } = await axios.get(backendUrl + '/api/doctor/list')
+
+            const { data } = await axios.get(
+                backendUrl + '/api/doctor/list'
+            )
+
             if (data.success) {
+
                 setDoctors(data.doctors)
+
             } else {
+
                 toast.error(data.message)
+
             }
+
         } catch (error) {
+
             console.log(error)
             toast.error(error.message)
+
         }
     }
 
+    // Load user profile
     const loadUserProfileData = async () => {
+
         try {
+
             const { data } = await axios.get(
                 backendUrl + '/api/user/get-profile',
-                { headers: { token } }
+                {
+                    headers: { token }
+                }
             )
+
             if (data.success) {
+
                 setUserData(data.userData)
-                // Join the user's socket room so doctor-side events reach this client
-                socket.emit('joinUserRoom', data.userData._id)
-                console.log('Joined user room:', data.userData._id)
+
+                // Join user room
+                socket.emit(
+                    'joinUserRoom',
+                    data.userData._id
+                )
+
             } else {
+
                 toast.error(data.message)
+
             }
+
         } catch (error) {
+
             console.log(error)
             toast.error(error.message)
+
         }
     }
 
-    // Re-join user room on socket reconnect (handles refresh / network drop)
+    // Rejoin user room after reconnect
     useEffect(() => {
+
         if (!userData?._id) return
 
         const rejoinRoom = () => {
-            socket.emit('joinUserRoom', userData._id)
-            console.log('Re-joined user room after reconnect:', userData._id)
+
+            socket.emit(
+                'joinUserRoom',
+                userData._id
+            )
+
         }
 
         socket.on('connect', rejoinRoom)
 
         return () => {
+
             socket.off('connect', rejoinRoom)
+
         }
+
     }, [userData])
 
+    // Load doctors initially + listen for updates
     useEffect(() => {
 
-        socket.on("doctorAvailabilityChanged", () => {
+        // Initial fetch
+        getDoctorsData()
 
-            console.log("Doctor availability updated")
+        const refreshDoctors = () => {
 
             getDoctorsData()
 
-        })
+        }
+
+        const handleDoctorAdded = () => {
+
+            getDoctorsData()
+
+            // toast.info(
+            //     "A new doctor has been added"
+            // )
+
+        }
+
+        socket.on(
+            "doctorAvailabilityChanged",
+            refreshDoctors
+        )
+
+        socket.on(
+            "doctorAdded",
+            handleDoctorAdded
+        )
 
         return () => {
 
-            socket.off("doctorAvailabilityChanged")
+            socket.off(
+                "doctorAvailabilityChanged",
+                refreshDoctors
+            )
+
+            socket.off(
+                "doctorAdded",
+                handleDoctorAdded
+            )
 
         }
 
     }, [])
 
+    // Load profile when token changes
     useEffect(() => {
-        getDoctorsData()
-    }, [])
 
-    useEffect(() => {
         if (token) {
+
             loadUserProfileData()
+
         } else {
+
             setUserData(false)
+
         }
+
     }, [token])
 
     const value = {
